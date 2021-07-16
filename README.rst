@@ -15,7 +15,7 @@ For testing simply clone this package and run::
 Testing
 -------
 
-You can test this package outside of a runscript by running the
-``oasis_rmp_rst_to_input.py`` and giving a ``config_file`` as an input::
+You can test this pluggin outside of run time by executing the
+``oasis_rmp_rst_to_input.py`` and giving it a ``config_file`` as an input::
 
     python3 oasis_rmp_rst_to_input/oasis_rmp_rst_to_input.py <config_file.yaml>
