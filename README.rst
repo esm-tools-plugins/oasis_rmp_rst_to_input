@@ -18,4 +18,4 @@ Testing
 You can test this pluggin outside of run time by executing the
 ``oasis_rmp_rst_to_input.py`` and giving it a ``config_file`` as an input::
 
-    python3 oasis_rmp_rst_to_input/oasis_rmp_rst_to_input.py <config_file.yaml>
+    python3 oasis_rmp_rst_to_input/oasis_rmp_rst_to_input.py <config_file.yaml> [-p <pool_dir>]
