@@ -21,11 +21,12 @@ def oasis_rmp_rst_to_input(config, user_pool=None):
     # This plugin should never crush a simulation, therefore, everything is done
     # inside a try block
     try:
+        # Get verbose mode
+        verbose = config.get("general", {}).get("verbose", False)
         # Run sanity checks and recover some useful variables from the config
-        check_passed, oasis_pool, restart_folder = (
-            check_vars_and_writing_permisions(config, user_pool)
+        check_passed, oasis_pool, restart_folder = check_vars_and_writing_permisions(
+            config, user_pool, verbose
         )
-
         if check_passed:
             # Check if the target folder exists and if not, create it
             target_folder = f"{oasis_pool}/{config['fesom']['nproc']}/"
@@ -49,9 +50,10 @@ def oasis_rmp_rst_to_input(config, user_pool=None):
                     + f"directory ('{restart_folder}')"
                 )
             # Check files existence and copy
-            print("Copying files to input folder...")
+            if verbose:
+                print("Copying files to input folder...")
             for restart_file in restart_files:
-                if os.path.isfile(f"{target_folder}/{restart_file}"):
+                if os.path.isfile(f"{target_folder}/{restart_file}") and verbose:
                     print(
                         f"\t'{restart_file}': already exists in the input folder "
                         + f"('{target_folder}'). The file won't be copied."
@@ -61,20 +63,22 @@ def oasis_rmp_rst_to_input(config, user_pool=None):
                         f"{restart_folder}/{restart_file}",
                         f"{target_folder}/{restart_file}"
                     )
-                    print(
-                        f"\t'{restart_file}': successfully copied into the input "
-                        + f"folder ('{target_folder}')."
-                    )
+                    if verbose:
+                        print(
+                            f"\t'{restart_file}': successfully copied into the input "
+                            + f"folder ('{target_folder}')."
+                        )
 
     except:
         plugin_error(
-            "Something unexpected happened during the execution of this plugin."
+            "Something unexpected happened during the execution of this plugin.",
+            verbose
         )
 
     return config
 
 
-def check_vars_and_writing_permisions(config, user_pool):
+def check_vars_and_writing_permisions(config, user_pool, verbose):
     """
     Sanity checks and replacing the ``user_pool`` if defined.
     """
@@ -86,7 +90,8 @@ def check_vars_and_writing_permisions(config, user_pool):
     # Check dictionaries
     if "oasis3mct" not in config or "general" not in config:
         plugin_error(
-            "This plugin only works if the simulation uses 'oasis3mct' and 'general'."
+            "This plugin only works if the simulation uses 'oasis3mct' and 'general'.",
+            verbose
         )
         check_passed = False
 
@@ -102,14 +107,14 @@ def check_vars_and_writing_permisions(config, user_pool):
     for section, variables in var_dict.items():
         for var in variables:
             if var not in config[section]:
-                plugin_error(f"Variable '{section}.{var}' does not exist.")
+                plugin_error(f"Variable '{section}.{var}' does not exist.", verbose)
                 check_passed = False
             if not config[section][var]:
-                plugin_error(f"Variable '{section}.{var}' is empty.")
+                plugin_error(f"Variable '{section}.{var}' is empty.", verbose)
                 check_passed = False
 
     # Check if it is the first run
-    if general["run_number"] == 1:
+    if general["run_number"] == 1 and verbose:
         print("Nothing to do for the first leg.")
         return False, None, None
 
@@ -120,14 +125,18 @@ def check_vars_and_writing_permisions(config, user_pool):
         # Check syntax, pool_dir should be part of the oasis_pool
         if pool_dir not in oasis_pool:
             plugin_error(
-                f"The oasis pool ('{oasis_pool}') does not contain the general pool "
-                + f"('{pool_dir}')."
+                (
+                    f"The oasis pool ('{oasis_pool}') does not contain the general "
+                    + f"pool ('{pool_dir}')."
+                ),
+                verbose
             )
             check_passed = False
         # Check if the oasis_pool is writable
         if not iswritable(oasis_pool) and not user_pool:
             plugin_error(
-                f"You do not have write access to the oasis pool dir ('{oasis_pool}')"
+                f"You do not have write access to the oasis pool dir ('{oasis_pool}')",
+                verbose
             )
             check_passed = False
         # Check for a user-defined pool, only for testing, ``user_pool`` is None when
@@ -137,29 +146,35 @@ def check_vars_and_writing_permisions(config, user_pool):
                 oasis_pool = oasis_pool.replace(pool_dir, user_pool)
             else:
                 plugin_error(
-                    f"The pool defined by the user ('{user_pool}') is not writable."
+                    f"The pool defined by the user ('{user_pool}') is not writable.",
+                    verbose
                 )
                 check_passed = False
         # Check if restart folder exists
         restart_folder = config["oasis3mct"]["experiment_restart_out_dir"]
         if not os.path.isdir(restart_folder):
-            plugin_error(f"The restart folder {restart_folder} does not exist.")
+            plugin_error(
+                f"The restart folder {restart_folder} does not exist.",
+                verbose
+            )
             check_passed = False
     else:
         plugin_error(
-            f"You do not have write access to the pool dir ('{pool_dir}')"
+            f"You do not have write access to the pool dir ('{pool_dir}')",
+            verbose
         )
         check_passed = False
 
     return check_passed, oasis_pool, restart_folder
 
 
-def plugin_error(sentence):
+def plugin_error(sentence, verbose):
     """
     Error message.
     """
-    print(sentence)
-    print("Does nothing and moves on into the next step of the recipe.")
+    if verbose:
+        print(sentence)
+        print("Does nothing and moves on into the next step of the recipe.")
 
 
 def iswritable(path):
