@@ -22,7 +22,7 @@ def oasis_rmp_rst_to_input(config, user_pool=None):
     # inside a try block
     try:
         # Get verbose mode
-        verbose = config.get("general", {}).get("verbose", False)
+        verbose = config.get("general", {}).get("verbose", True)
         # Run sanity checks and recover some useful variables from the config
         check_passed, oasis_pool, restart_folder = check_vars_and_writing_permisions(
             config, user_pool, verbose
