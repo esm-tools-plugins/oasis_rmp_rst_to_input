@@ -96,7 +96,7 @@ def check_vars_and_writing_permisions(config, user_pool):
     # Check that the necessary variables exist and are not empty
     var_dict = {
         "oasis3mct": ["pool_dir", "experiment_restart_out_dir"],
-        "general": ["pool_dir"],
+        "general": ["pool_dir", "run_number"],
         "fesom": ["nproc"]
     }
     for section, variables in var_dict.items():
@@ -107,6 +107,11 @@ def check_vars_and_writing_permisions(config, user_pool):
             if not config[section][var]:
                 plugin_error(f"Variable '{section}.{var}' is empty.")
                 check_passed = False
+
+    # Check if it is the first run
+    if general["run_number"] == 1:
+        print("Nothing to do for the first leg.")
+        return False, None, None
 
     # Check if the pool_dir is writable
     pool_dir = general["pool_dir"]
