@@ -51,23 +51,17 @@ def oasis_rmp_rst_to_input(config, user_pool=None):
                 )
             # Check files existence and copy
             if verbose:
-                print("Copying files to input folder...")
+                print("Copying files to input folder ('{target_folder}')...")
             for restart_file in restart_files:
                 if os.path.isfile(f"{target_folder}/{restart_file}") and verbose:
-                    print(
-                        f"\t'{restart_file}': already exists in the input folder "
-                        + f"('{target_folder}'). The file won't be copied."
-                    )
+                    print(f"\t{restart_file}: already exists and won't be copied")
                 else:
                     shutil.copy2(
                         f"{restart_folder}/{restart_file}",
                         f"{target_folder}/{restart_file}"
                     )
                     if verbose:
-                        print(
-                            f"\t'{restart_file}': successfully copied into the input "
-                            + f"folder ('{target_folder}')."
-                        )
+                        print(f"\t{restart_file}: successfully copied")
 
     except:
         plugin_error(
