@@ -132,8 +132,8 @@ def check_vars_and_writing_permisions(config, user_pool, verbose):
                 verbose
             )
             check_passed = False
-        # Check if the oasis_pool is writable
-        if not iswritable(oasis_pool) and not user_pool:
+        # Check if the oasis_pool exists and is writable
+        if not iswritable(oasis_pool) and os.path.isdir(oasis_pool) and not user_pool:
             plugin_error(
                 f"You do not have write access to the oasis pool dir ('{oasis_pool}')",
                 verbose
