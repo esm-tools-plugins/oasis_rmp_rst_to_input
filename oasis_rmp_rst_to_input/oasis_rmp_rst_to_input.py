@@ -24,12 +24,12 @@ def oasis_rmp_rst_to_input(config, user_pool=None):
         # Get verbose mode
         verbose = config.get("general", {}).get("verbose", True)
         # Run sanity checks and recover some useful variables from the config
-        check_passed, oasis_pool, restart_folder = check_vars_and_writing_permisions(
+        check_passed, input_dir, restart_folder = check_vars_and_writing_permisions(
             config, user_pool, verbose
         )
         if check_passed:
             # Check if the target folder exists and if not, create it
-            target_folder = f"{oasis_pool}/{config['fesom']['nproc']}/"
+            target_folder = f"{input_dir}/{config['fesom']['nproc']}/"
             if not os.path.isdir(target_folder):
                 try:
                     os.makedirs(target_folder)
@@ -84,7 +84,7 @@ def check_vars_and_writing_permisions(config, user_pool, verbose):
     """
 
     check_passed = True
-    oasis_pool = None
+    input_dir = None
     restart_folder = None
 
     # Check dictionaries
@@ -100,8 +100,8 @@ def check_vars_and_writing_permisions(config, user_pool, verbose):
 
     # Check that the necessary variables exist and are not empty
     var_dict = {
-        "oasis3mct": ["pool_dir", "experiment_restart_out_dir"],
-        "general": ["pool_dir", "run_number"],
+        "oasis3mct": ["experiment_restart_out_dir"],
+        "general": ["pool_dir", "input_dir", "run_number"],
         "fesom": ["nproc"]
     }
     for section, variables in var_dict.items():
@@ -119,23 +119,23 @@ def check_vars_and_writing_permisions(config, user_pool, verbose):
         return False, None, None
 
     # Check if the pool_dir is writable
-    pool_dir = general["pool_dir"]
-    oasis_pool = oasis["pool_dir"]
+    pool_dir = oasis["pool_dir"]
+    input_dir = oasis["input_dir"]
     if iswritable(pool_dir) or user_pool:
-        # Check syntax, pool_dir should be part of the oasis_pool
-        if pool_dir not in oasis_pool:
+        # Check syntax, pool_dir should be part of the input_dir
+        if pool_dir not in input_dir:
             plugin_error(
                 (
-                    f"The oasis pool ('{oasis_pool}') does not contain the general "
+                    f"The oasis input dir ('{input_dir}') does not contain the general "
                     + f"pool ('{pool_dir}')."
                 ),
                 verbose
             )
             check_passed = False
-        # Check if the oasis_pool exists and is writable
-        if not iswritable(oasis_pool) and os.path.isdir(oasis_pool) and not user_pool:
+        # Check if the input_dir exists and is writable
+        if not iswritable(input_dir) and os.path.isdir(input_dir) and not user_pool:
             plugin_error(
-                f"You do not have write access to the oasis pool dir ('{oasis_pool}')",
+                f"You do not have write access to the oasis input dir ('{input_dir}')",
                 verbose
             )
             check_passed = False
@@ -143,7 +143,7 @@ def check_vars_and_writing_permisions(config, user_pool, verbose):
         # run from a recipe
         if user_pool:
             if iswritable(user_pool):
-                oasis_pool = oasis_pool.replace(pool_dir, user_pool)
+                input_dir = input_dir.replace(pool_dir, user_pool)
             else:
                 plugin_error(
                     f"The pool defined by the user ('{user_pool}') is not writable.",
@@ -165,7 +165,7 @@ def check_vars_and_writing_permisions(config, user_pool, verbose):
         )
         check_passed = False
 
-    return check_passed, oasis_pool, restart_folder
+    return check_passed, input_dir, restart_folder
 
 
 def plugin_error(sentence, verbose):
