@@ -100,8 +100,8 @@ def check_vars_and_writing_permisions(config, user_pool, verbose):
 
     # Check that the necessary variables exist and are not empty
     var_dict = {
-        "oasis3mct": ["experiment_restart_out_dir"],
-        "general": ["pool_dir", "input_dir", "run_number"],
+        "oasis3mct": ["pool_dir", "input_dir", "experiment_restart_out_dir"],
+        "general": ["run_number"],
         "fesom": ["nproc"]
     }
     for section, variables in var_dict.items():
